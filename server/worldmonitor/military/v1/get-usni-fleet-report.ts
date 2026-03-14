@@ -12,14 +12,16 @@ const USNI_STALE_CACHE_KEY = 'usni-fleet:sebuf:stale:v1';
 
 // ========================================================================
 // RPC handler (Redis-read-only — Railway relay seeds the data)
-// NOTE: forceRefresh is accepted but ignored. The relay is the sole
-// writer; Vercel edge functions must not make upstream fetches.
 // ========================================================================
 
 export async function getUSNIFleetReport(
   _ctx: ServerContext,
-  _req: GetUSNIFleetReportRequest,
+  req: GetUSNIFleetReportRequest,
 ): Promise<GetUSNIFleetReportResponse> {
+  if (req.forceRefresh) {
+    return { report: undefined, cached: false, stale: false, error: 'forceRefresh is no longer supported (data is seeded by Railway relay)' };
+  }
+
   try {
     const report = (await getCachedJson(USNI_CACHE_KEY)) as USNIFleetReport | null;
     if (report) {
