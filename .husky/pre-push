@@ -46,7 +46,6 @@ if command -v buf >/dev/null 2>&1 || [ -x "$HOME/go/bin/buf" ]; then
       echo "ERROR: Proto-generated code is out of date."
       echo "Run 'make generate' locally and commit the updated files."
       echo "============================================================"
-      git checkout -- src/generated/ docs/api/ 2>/dev/null
       exit 1
     fi
   fi
