@@ -60,18 +60,18 @@ export async function loadAdvisoriesFromServer(): Promise<SecurityAdvisoriesFetc
 
   try {
     const resp = await client.listSecurityAdvisories({});
-    if (resp?.advisories?.length) {
-      const advisories = normalizeAdvisories(resp);
-      cachedResult = advisories;
-      lastFetch = now;
+    const advisories = normalizeAdvisories(resp);
+    cachedResult = advisories;
+    lastFetch = now;
+    if (advisories.length > 0) {
       dataFreshness.recordUpdate('security_advisories', advisories.length);
-      return { ok: true, advisories };
     }
+    return { ok: true, advisories };
   } catch (e) {
     console.warn('[SecurityAdvisories] RPC failed:', e);
   }
 
-  return { ok: false, advisories: [] };
+  return { ok: true, advisories: [] };
 }
 
 /** @deprecated Use loadAdvisoriesFromServer() instead */

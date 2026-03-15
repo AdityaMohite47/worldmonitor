@@ -59,43 +59,15 @@ function parseLevel(title, parser) {
   return 'info';
 }
 
-const COUNTRY_NAMES = {
-  afghanistan: 'AF', albania: 'AL', algeria: 'DZ', argentina: 'AR', australia: 'AU',
-  bangladesh: 'BD', brazil: 'BR', canada: 'CA', china: 'CN', colombia: 'CO',
-  cuba: 'CU', egypt: 'EG', france: 'FR', germany: 'DE', india: 'IN',
-  indonesia: 'ID', iran: 'IR', iraq: 'IQ', israel: 'IL', italy: 'IT',
-  japan: 'JP', kenya: 'KE', lebanon: 'LB', libya: 'LY', mexico: 'MX',
-  myanmar: 'MM', nigeria: 'NG', 'north korea': 'KP', pakistan: 'PK', peru: 'PE',
-  philippines: 'PH', poland: 'PL', russia: 'RU', 'saudi arabia': 'SA',
-  'south korea': 'KR', spain: 'ES', sudan: 'SD', syria: 'SY', taiwan: 'TW',
-  thailand: 'TH', turkey: 'TR', 'türkiye': 'TR', ukraine: 'UA',
-  'united arab emirates': 'AE', 'united kingdom': 'GB', 'united states': 'US',
-  venezuela: 'VE', vietnam: 'VN', yemen: 'YE', 'dominican republic': 'DO',
-  haiti: 'HT', ethiopia: 'ET', somalia: 'SO', 'south sudan': 'SS',
-  'democratic republic of the congo': 'CD', mali: 'ML', niger: 'NE',
-  'burkina faso': 'BF', chad: 'TD', cameroon: 'CM', mozambique: 'MZ',
-  'guinea-bissau': 'GW', guinea: 'GN', 'sierra leone': 'SL',
-  'côte d\'ivoire': 'CI', 'ivory coast': 'CI', 'sri lanka': 'LK',
-  'trinidad and tobago': 'TT', 'el salvador': 'SV', honduras: 'HN',
-  guatemala: 'GT', nicaragua: 'NI', 'costa rica': 'CR', panama: 'PA',
-  jamaica: 'JM', bolivia: 'BO', paraguay: 'PY', uruguay: 'UY', chile: 'CL',
-  ecuador: 'EC',
-};
+const COUNTRY_NAMES = loadSharedConfig('country-names.json');
+const SORTED_COUNTRY_ENTRIES = Object.entries(COUNTRY_NAMES).sort((a, b) => b[0].length - a[0].length);
 
 function extractCountry(title, feed) {
   if (feed.targetCountry) return feed.targetCountry;
   if (feed.sourceCountry === 'EU' || feed.sourceCountry === 'INT') return undefined;
   const lower = title.toLowerCase();
-  // Try longest match first (handles "Guinea-Bissau" before "Guinea")
-  const sorted = Object.entries(COUNTRY_NAMES).sort((a, b) => b[0].length - a[0].length);
-  for (const [name, code] of sorted) {
+  for (const [name, code] of SORTED_COUNTRY_ENTRIES) {
     if (lower.includes(name)) return code;
-  }
-  // Fall back to dash-split for "Country - Advisory Title" format
-  const parts = title.split(/\s*[–—]\s*/);
-  if (parts.length >= 2 && parts[0]) {
-    const code = COUNTRY_NAMES[parts[0].trim().toLowerCase()];
-    if (code) return code;
   }
   return undefined;
 }
