@@ -143,6 +143,83 @@ describe('military flight classification', () => {
     assert.deepEqual(operator, {
       operator: 'qeaf',
       operatorCountry: 'Qatar',
+      reason: 'source_operator',
+      confidence: 'high',
     });
+  });
+
+  it('derives stable operator identities for major military operators from source metadata', () => {
+    assert.deepEqual(deriveOperatorFromSourceMeta({
+      operatorName: 'United States Air Force',
+      aircraftTypeLabel: 'KC-135 tanker',
+    }), {
+      operator: 'usaf',
+      operatorCountry: 'USA',
+      reason: 'source_operator',
+      confidence: 'high',
+    });
+
+    assert.deepEqual(deriveOperatorFromSourceMeta({
+      operatorName: "People's Liberation Army Air Force",
+      aircraftTypeLabel: 'fighter aircraft',
+    }), {
+      operator: 'plaaf',
+      operatorCountry: 'China',
+      reason: 'source_operator',
+      confidence: 'high',
+    });
+  });
+
+  it('preserves source metadata and source-based inference in accepted flight records', () => {
+    const state = makeState({
+      icao24: 'ADF800',
+      callsign: 'VIPER17',
+      country: 'United States',
+      lon: 120.7,
+      lat: 15.1,
+      sourceMeta: {
+        source: 'wingbits',
+        operatorName: 'United States Air Force',
+        operatorCode: 'USAF',
+        aircraftTypeLabel: 'F-16 fighter',
+        aircraftModel: 'F-16C',
+        registration: '84-1256',
+      },
+    });
+
+    const { flights } = filterMilitaryFlights([state]);
+    assert.equal(flights.length, 1);
+    assert.equal(flights[0].sourceMeta.operatorName, 'United States Air Force');
+    assert.equal(flights[0].sourceMeta.aircraftTypeCode, '');
+    assert.equal(flights[0].operator, 'usaf');
+    assert.equal(flights[0].operatorInferenceReason, 'callsign_pattern');
+    assert.equal(flights[0].aircraftTypeInferenceReason, 'callsign_pattern');
+  });
+
+  it('reports source-backed operator inference and richer audit samples', () => {
+    const state = makeState({
+      icao24: '06A255',
+      callsign: '',
+      country: 'Qatar',
+      lon: 25.1,
+      lat: 51.6,
+      sourceMeta: {
+        source: 'wingbits',
+        operatorName: 'Qatar Emiri Air Force',
+        operatorCode: 'QEAF',
+        aircraftTypeLabel: 'military transport',
+        aircraftModel: 'C-17 Globemaster',
+        registration: 'QA-202',
+      },
+    });
+
+    const { flights, audit } = filterMilitaryFlights([state]);
+    assert.equal(flights.length, 1);
+    assert.equal(audit.typedBySource, 1);
+    assert.equal(audit.sourceOperatorInferred, 1);
+    assert.equal(audit.operatorOtherRate, 0);
+    assert.equal(audit.samples.accepted[0].operatorInferenceReason, 'source_metadata');
+    assert.equal(audit.samples.accepted[0].sourceMeta.operatorCode, 'QEAF');
+    assert.equal(audit.samples.accepted[0].sourceMeta.registration, 'QA-202');
   });
 });
