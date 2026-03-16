@@ -98,6 +98,9 @@ async function redisDel(url, token, key) {
   return redisCommand(url, token, ['DEL', key]);
 }
 
+// Upstash REST calls surface transient network issues through fetch/undici
+// errors rather than stable app-level error codes, so we normalize the common
+// timeout/reset/DNS variants here before deciding to skip a seed run.
 export function isTransientRedisError(err) {
   const message = String(err?.message || '');
   const causeMessage = String(err?.cause?.message || '');
