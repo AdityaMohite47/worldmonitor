@@ -1838,31 +1838,39 @@ describe('forecast quality gating', () => {
     const consequence = makePrediction('market', 'Middle East', 'Oil price impact from Strait of Hormuz disruption', 0.41, 0.51, '30d', [
       { type: 'news_corroboration', value: 'Oil traders react to Hormuz risk', weight: 0.4 },
     ]);
+    const distinctConflict = makePrediction('conflict', 'Gulf', 'Spillover conflict risk: Gulf shipping corridor', 0.47, 0.53, '14d', [
+      { type: 'news_corroboration', value: 'Gulf states prepare for possible spillover', weight: 0.35 },
+    ]);
 
-    buildForecastCases([primary, duplicate, consequence]);
-    for (const pred of [primary, duplicate, consequence]) {
+    buildForecastCases([primary, duplicate, consequence, distinctConflict]);
+    for (const pred of [primary, duplicate, consequence, distinctConflict]) {
       pred.traceMeta = { narrativeSource: 'fallback' };
     }
     primary.caseFile.situationContext = { id: 'sit-1', label: 'Iran conflict pressure', forecastCount: 3, topSignals: [{ type: 'ucdp', count: 2 }] };
     duplicate.caseFile.situationContext = { id: 'sit-1', label: 'Iran conflict pressure', forecastCount: 3, topSignals: [{ type: 'ucdp', count: 2 }] };
     consequence.caseFile.situationContext = { id: 'sit-1', label: 'Iran conflict pressure', forecastCount: 3, topSignals: [{ type: 'ucdp', count: 2 }] };
+    distinctConflict.caseFile.situationContext = { id: 'sit-2', label: 'Gulf spillover pressure', forecastCount: 1, topSignals: [{ type: 'news_corroboration', count: 1 }] };
     primary.situationContext = primary.caseFile.situationContext;
     duplicate.situationContext = duplicate.caseFile.situationContext;
     consequence.situationContext = consequence.caseFile.situationContext;
+    distinctConflict.situationContext = distinctConflict.caseFile.situationContext;
     primary.readiness = { overall: 0.63 };
     duplicate.readiness = { overall: 0.44 };
     consequence.readiness = { overall: 0.54 };
+    distinctConflict.readiness = { overall: 0.49 };
     primary.analysisPriority = 0.19;
     duplicate.analysisPriority = 0.09;
     consequence.analysisPriority = 0.12;
+    distinctConflict.analysisPriority = 0.11;
 
-    const published = filterPublishedForecasts([primary, duplicate, consequence]);
-    assert.equal(published.length, 2);
+    const published = filterPublishedForecasts([primary, duplicate, consequence, distinctConflict]);
+    assert.equal(published.length, 3);
     assert.ok(published.some((item) => item.id === primary.id));
     assert.ok(!published.some((item) => item.id === duplicate.id));
     assert.ok(published.some((item) => item.id === consequence.id));
+    assert.ok(published.some((item) => item.id === distinctConflict.id));
 
-    const telemetry = summarizePublishFiltering([primary, duplicate, consequence]);
+    const telemetry = summarizePublishFiltering([primary, duplicate, consequence, distinctConflict]);
     assert.equal(telemetry.suppressedSituationOverlap, 1);
   });
 });

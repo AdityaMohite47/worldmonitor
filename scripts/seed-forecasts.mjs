@@ -29,6 +29,9 @@ const ENRICHMENT_SCENARIO_MAX = 3;
 const ENRICHMENT_MAX_PER_DOMAIN = 2;
 const ENRICHMENT_MIN_READINESS = 0.34;
 const ENRICHMENT_PRIORITY_DOMAINS = ['market', 'military'];
+// Situation-overlap suppression should require more than a same-cluster/same-region match.
+// We only suppress when overlap is strong enough to look like the same forecast expressed twice.
+const DUPLICATE_SCORE_THRESHOLD = 6;
 const CYBER_MIN_THREATS_PER_COUNTRY = 5;
 const CYBER_MAX_FORECASTS = 12;
 const CYBER_SCORE_TYPE_MULTIPLIER = 1.5;    // bonus per distinct threat type
@@ -3052,6 +3055,8 @@ function buildForecastTraceArtifacts(data, context = {}, config = {}) {
     predictions,
     priorWorldState: data?.priorWorldState || null,
     priorWorldStates: data?.priorWorldStates || [],
+    situationClusters: data?.situationClusters || undefined,
+    publishTelemetry: data?.publishTelemetry || null,
   });
   const prefix = buildTraceRunPrefix(
     context.runId || `run_${generatedAt}`,
@@ -3536,7 +3541,7 @@ function filterPublishedForecasts(predictions, minProbability = PUBLISH_MIN_PROB
     const bestDuplicate = kept.find((item) => {
       if (item.domain !== pred.domain) return false;
       const duplicateScore = computeSituationDuplicateScore(pred, item);
-      if (duplicateScore < 6) return false;
+      if (duplicateScore < DUPLICATE_SCORE_THRESHOLD) return false;
 
       const priorityGap = (item.analysisPriority || 0) - priority;
       const confidenceGap = (item.confidence || 0) - (pred.confidence || 0);
