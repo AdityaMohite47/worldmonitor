@@ -754,7 +754,7 @@ export class DeckGLMap {
       }
     });
 
-    this.container.addEventListener('contextmenu', this.handleContextMenu, { capture: true });
+    this.maplibreMap.getCanvas().addEventListener('contextmenu', this.handleContextMenu);
   }
 
   private initDeck(): void {
@@ -5711,10 +5711,9 @@ export class DeckGLMap {
 
     this.deckOverlay?.finalize();
     this.deckOverlay = null;
+    this.maplibreMap?.getCanvas().removeEventListener('contextmenu', this.handleContextMenu);
     this.maplibreMap?.remove();
     this.maplibreMap = null;
-
-    this.container.removeEventListener('contextmenu', this.handleContextMenu, { capture: true });
     this.container.innerHTML = '';
   }
 }

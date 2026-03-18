@@ -79,7 +79,7 @@ export const LAYER_REGISTRY: Record<keyof MapLayers, LayerDefinition> = {
   processingPlants:         def('processingPlants',         '&#127981;', 'processingPlants',         'Processing Plants'),
   commodityPorts:           def('commodityPorts',           '&#9973;',   'commodityPorts',           'Commodity Ports'),
   webcams:                  def('webcams',                  '&#128247;', 'webcams',                  'Live Webcams'),
-  weatherRadar:             def('weatherRadar',             '&#127783;', 'weatherRadar',             'Weather Radar'),
+  weatherRadar:             def('weatherRadar',             '&#127783;', 'weatherRadar',             'Weather Radar', ['flat']),
 };
 
 const VARIANT_LAYER_ORDER: Record<MapVariant, Array<keyof MapLayers>> = {
