@@ -106,7 +106,7 @@ async function fetchAndParseRss(
   variant: string,
   signal: AbortSignal,
 ): Promise<ParsedItem[]> {
-  const cacheKey = `rss:feed:v1:${feed.url}`;
+  const cacheKey = `rss:feed:v1:${variant}:${feed.url}`;
 
   try {
     const cached = await cachedFetchJson<ParsedItem[]>(cacheKey, 3600, async () => {
