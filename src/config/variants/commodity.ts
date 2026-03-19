@@ -79,7 +79,7 @@ export const DEFAULT_MAP_LAYERS: MapLayers = {
   // Protests / civil unrest
   protests: false,
   // Transport / tracking
-  ais: true,              // Commodity shipping, tanker routes, bulk carriers
+  ais: false,             // Requires Railway relay — disabled on Vercel deployment
   flights: false,
   // Infrastructure
   cables: true,           // Undersea cables (trade comms)
