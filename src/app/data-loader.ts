@@ -1685,12 +1685,10 @@ export class DataLoaderManager implements AppModule {
     tasks.push((async () => {
       try {
         const protestEvents = await protestsTask;
-        let result = await fetchUcdpEvents(hydratedUcdp);
-        for (let attempt = 1; attempt < 3 && !result.success; attempt++) {
-          await new Promise(r => setTimeout(r, 15_000));
-          result = await fetchUcdpEvents();
-        }
+        const result = await fetchUcdpEvents(hydratedUcdp);
         if (!result.success) {
+          // listUcdpEvents is a pure Redis-read (gold standard). Retrying returns
+          // the same empty result until the Railway seed refreshes the key.
           dataFreshness.recordError('ucdp_events', 'UCDP events unavailable (retaining prior event state)');
           return;
         }
@@ -2071,9 +2069,7 @@ export class DataLoaderManager implements AppModule {
     if (!this.ctx.map) return;
     try {
       const map = this.ctx.map;
-      const zoom = map.getState().zoom ?? 3;
-
-      if (zoom < 2) return;
+      const zoom = Math.max(2, map.getState().zoom ?? 3);
 
       const now = Date.now();
       if (now - this.lastWebcamFetchAt < 1000) return;
